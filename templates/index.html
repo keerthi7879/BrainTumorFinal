@@ -1,79 +1,22 @@
 
 <!DOCTYPE html>
 <html>
-
 <head>
-<title>Brain Tumor Detection System</title>
-
-<style>
-
-body{
-font-family:Arial;
-text-align:center;
-background:#f2f2f2;
-padding:40px;
-}
-
-.container{
-background:white;
-padding:30px;
-width:500px;
-margin:auto;
-border-radius:15px;
-box-shadow:0px 0px 10px gray;
-}
-
-h1{
-color:#1a73e8;
-}
-
-button{
-padding:10px 20px;
-font-size:16px;
-background:#1a73e8;
-color:white;
-border:none;
-border-radius:8px;
-cursor:pointer;
-}
-
-</style>
+    <title>Brain Tumor Detection</title>
 </head>
-
 <body>
 
-<div class="container">
+    <h1>Brain Tumor Detection System</h1>
 
-<h1>Brain Tumor Detection using Ensemble Learning</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" required>
+        <button type="submit">Predict</button>
+    </form>
 
-<form method="POST"
-enctype="multipart/form-data">
-
-<input type="file"
-name="file"
-required>
-
-<br><br>
-
-<button type="submit">
-Predict
-</button>
-
-</form>
-
-{% if result %}
-
-<h2>{{result}}</h2>
-
-<h3>
-Confidence:
-{{confidence}}%
-</h3>
-
-{% endif %}
-
-</div>
+    {% if result %}
+        <h2>{{ result }}</h2>
+        <h3>Confidence: {{ confidence }}%</h3>
+    {% endif %}
 
 </body>
-
 </html>
