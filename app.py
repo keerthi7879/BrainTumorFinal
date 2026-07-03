@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request
 import tensorflow as tf
 from tensorflow.keras.preprocessing import image
@@ -7,80 +6,34 @@ import os
 
 app = Flask(__name__)
 
-BASE_DIR="/content/drive/MyDrive/BrainTumorFinal"
+# Google Drive BASE_DIR configuration
+BASE_DIR = "/content/drive/MyDrive/BrainTumorFinal"
 
-model_cnn=tf.keras.models.load_model(
-f"{BASE_DIR}/models/custom_cnn_model.h5"
-)
-
-model_vgg=tf.keras.models.load_model(
-f"{BASE_DIR}/models/vgg16_model.h5"
-)
-
-model_resnet=tf.keras.models.load_model(
-f"{BASE_DIR}/models/resnet50_model.h5"
-)
+# Models disabled temporarily to prevent GitHub deployment crash
+model_cnn = None
+model_vgg = None
+model_resnet = None
 
 
 def predict_image(img_path):
-
-    img=image.load_img(
-        img_path,
-        target_size=(224,224)
-    )
-
-    img_array=image.img_to_array(img)
-
-    img_array=np.expand_dims(
-        img_array,
-        axis=0
-    )
-
-    img_array=img_array/255.0
+    # Temporary safe return statement to prevent system crash
+    return "Model Not Available", 0.0
 
 
-    cnn=model_cnn.predict(
-        img_array,
-        verbose=0
-    )[0][0]
-
-    vgg=1-model_vgg.predict(
-        img_array,
-        verbose=0
-    )[0][0]
-
-    resnet=1-model_resnet.predict(
-        img_array,
-        verbose=0
-    )[0][0]
-
-    final_score=(cnn+vgg+resnet)/3
-
-    label=(
-        "Tumor Detected"
-        if final_score>0.5
-        else "No Tumor"
-    )
-
-    confidence=max(
-        final_score,
-        1-final_score
-    )
-
-    return label, round(confidence*100,2)
-
-
-@app.route("/",methods=["GET","POST"])
+@app.route("/", methods=["GET", "POST"])
 def home():
 
-    result=None
-    confidence=None
+    result = None
+    confidence = None
 
-    if request.method=="POST":
+    if request.method == "POST":
 
-        file=request.files["file"]
+        file = request.files["file"]
 
-        save_path=os.path.join(
+        # Automatically creating upload directory if missing
+        os.makedirs(os.path.join(BASE_DIR, "uploads"), exist_ok=True)
+
+        save_path = os.path.join(
             BASE_DIR,
             "uploads",
             file.filename
@@ -88,7 +41,7 @@ def home():
 
         file.save(save_path)
 
-        result,confidence=(
+        result, confidence = (
             predict_image(save_path)
         )
 
@@ -99,5 +52,6 @@ def home():
     )
 
 
-if __name__=="__main__":
-    app.run(host="0.0.0.0",port=5000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+
