@@ -4,4 +4,4 @@ opencv-python-headless
 pillow
 gunicorn
 tensorflow==2.15.0
-gdown
+gdown==5.2.0
