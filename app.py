@@ -9,30 +9,30 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # Create models folder automatically
 models_dir = os.path.join(BASE_DIR, "models")
 os.makedirs(models_dir, exist_ok=True)
-# Google Drive model IDs
+# Google Drive model IDs (.keras format)
 model_files = {
-    os.path.join(models_dir, "custom_cnn_model.h5"):
-    "1inTYEAQ2jI-8tuezSUYmv3Q5lhxd5FoZ",
-    os.path.join(models_dir, "resnet50_model.h5"):
-    "1C5C1tOsfUtnHf4VHuxt63TtONum0Y0IN",
-    os.path.join(models_dir, "vgg16_model.h5"):
-    "1Gw_zEDrym7-Q4_WJYPiiQ1Sn_MjwPa5Y",
+    os.path.join(models_dir, "custom_cnn_model.keras"):
+    "14SQP67-F0tCusj9-yfF0tFdyK57_41HG",
+    os.path.join(models_dir, "resnet50_model.keras"):
+    "1w6SDlrsc-vLbJMKWMuAV_oCEi0tASh2u",
+    os.path.join(models_dir, "vgg16_model.keras"):
+    "16PAGuBHbADl_TPi58dw6O2Jl_tx2VC0t",
 }
 # Download models if missing
 for path, file_id in model_files.items():
     if not os.path.exists(path):
         print(f"Downloading {path}...")
         url = f"https://drive.google.com/uc?id={file_id}"
-        gdown.download(url, path, quiet=False, fuzzy=True)
+        gdown.download(url, path, quiet=False)
 # Load models
 model_cnn = tf.keras.models.load_model(
-    os.path.join(models_dir, "custom_cnn_model.h5")
+    os.path.join(models_dir, "custom_cnn_model.keras")
 )
 model_vgg = tf.keras.models.load_model(
-    os.path.join(models_dir, "vgg16_model.h5")
+    os.path.join(models_dir, "vgg16_model.keras")
 )
 model_resnet = tf.keras.models.load_model(
-    os.path.join(models_dir, "resnet50_model.h5")
+    os.path.join(models_dir, "resnet50_model.keras")
 )
 def predict_image(img_path):
     img = image.load_img(img_path, target_size=(224,224))
