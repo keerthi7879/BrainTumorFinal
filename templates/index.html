@@ -4,29 +4,44 @@
 <meta charset="UTF-8">
 <title>Brain Tumor Detection System</title>
 <style>
+    * { box-sizing: border-box; }
+
     body {
         font-family: 'Segoe UI', Arial, sans-serif;
-        background: #f4f6f9;
+        background: linear-gradient(160deg, #eaf2fb 0%, #f7fafd 100%);
         margin: 0;
         padding: 40px 20px;
         display: flex;
         justify-content: center;
+        min-height: 100vh;
     }
 
     .container {
         background: #ffffff;
-        max-width: 600px;
+        max-width: 640px;
         width: 100%;
-        padding: 30px 40px;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        padding: 35px 45px;
+        border-radius: 14px;
+        box-shadow: 0 8px 30px rgba(21, 87, 153, 0.1);
+        border-top: 5px solid #1467b0;
     }
 
-    h1 {
+    .header {
         text-align: center;
-        color: #2c3e50;
-        font-size: 26px;
-        margin-bottom: 30px;
+        margin-bottom: 10px;
+    }
+
+    .header h1 {
+        color: #10426b;
+        font-size: 25px;
+        margin: 0;
+    }
+
+    .subtitle {
+        text-align: center;
+        color: #6b8199;
+        font-size: 13px;
+        margin-bottom: 28px;
     }
 
     form {
@@ -34,79 +49,92 @@
         flex-direction: column;
         align-items: center;
         gap: 15px;
-        margin-bottom: 25px;
+        margin-bottom: 20px;
+        padding: 20px;
+        background: #f4f9fd;
+        border-radius: 10px;
+        border: 1px dashed #b7d3ea;
     }
 
     input[type="file"] {
         padding: 8px;
-        border: 1px solid #ccc;
+        border: 1px solid #cfe0ee;
         border-radius: 6px;
         width: 100%;
+        background: white;
     }
 
     button {
-        background: #2c7be5;
+        background: #1467b0;
         color: white;
         border: none;
-        padding: 10px 30px;
+        padding: 11px 34px;
         border-radius: 6px;
         font-size: 15px;
+        font-weight: 600;
         cursor: pointer;
         transition: background 0.2s;
     }
 
-    button:hover {
-        background: #1a5fc0;
+    button:hover { background: #0f5089; }
+
+    .spinner {
+        display: none;
+        margin: 15px auto;
+        border: 4px solid #dceaf7;
+        border-top: 4px solid #1467b0;
+        border-radius: 50%;
+        width: 34px;
+        height: 34px;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 
     .image-preview {
         text-align: center;
-        margin-bottom: 25px;
+        margin-bottom: 22px;
     }
 
     .image-preview img {
         max-width: 100%;
-        max-height: 300px;
+        max-height: 280px;
         border-radius: 8px;
-        border: 1px solid #ddd;
+        border: 1px solid #d7e5f0;
     }
 
     .result-box {
         text-align: center;
-        padding: 20px;
+        padding: 22px;
         border-radius: 10px;
-        margin-bottom: 25px;
+        margin-bottom: 22px;
     }
 
-    .tumor {
-        background: #fdecea;
-        border: 1px solid #f5c2c0;
-    }
-
-    .no-tumor {
-        background: #eafaf1;
-        border: 1px solid #b7ebc6;
-    }
+    .tumor { background: #fdecea; border: 1px solid #f2b8b5; }
+    .no-tumor { background: #e9f7ef; border: 1px solid #a9dcc0; }
 
     .result-label {
-        font-size: 22px;
+        font-size: 21px;
         font-weight: bold;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
 
-    .tumor .result-label { color: #c0392b; }
-    .no-tumor .result-label { color: #27ae60; }
+    .tumor .result-label { color: #b3261e; }
+    .no-tumor .result-label { color: #1a7d4a; }
 
     .confidence-text {
-        font-size: 15px;
+        font-size: 14px;
         color: #555;
         margin-bottom: 10px;
     }
 
     .confidence-bar-bg {
-        background: #e0e0e0;
+        background: #e2e2e2;
         border-radius: 20px;
-        height: 14px;
+        height: 13px;
         width: 100%;
         overflow: hidden;
     }
@@ -114,20 +142,19 @@
     .confidence-bar-fill {
         height: 100%;
         border-radius: 20px;
-        transition: width 0.4s ease;
     }
 
-    .tumor .confidence-bar-fill { background: #e74c3c; }
-    .no-tumor .confidence-bar-fill { background: #2ecc71; }
+    .tumor .confidence-bar-fill { background: #d64541; }
+    .no-tumor .confidence-bar-fill { background: #2fa969; }
 
-    .model-results {
-        margin-top: 10px;
-    }
+    .model-results { margin-top: 8px; }
 
     .model-results h3 {
-        font-size: 16px;
-        color: #2c3e50;
+        font-size: 15px;
+        color: #10426b;
         margin-bottom: 12px;
+        border-bottom: 1px solid #e5edf5;
+        padding-bottom: 8px;
     }
 
     .model-row {
@@ -135,45 +162,64 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 10px;
-        font-size: 14px;
+        font-size: 13px;
     }
 
-    .model-name {
-        width: 120px;
-        color: #444;
-    }
+    .model-name { width: 110px; color: #444; }
 
     .model-bar-bg {
         flex: 1;
-        background: #e8e8e8;
+        background: #e8eef4;
         border-radius: 10px;
-        height: 10px;
+        height: 9px;
         margin: 0 10px;
         overflow: hidden;
     }
 
     .model-bar-fill {
         height: 100%;
-        background: #2c7be5;
+        background: #1467b0;
         border-radius: 10px;
     }
 
-    .model-percent {
-        width: 55px;
-        text-align: right;
-        color: #333;
+    .model-percent { width: 50px; text-align: right; color: #333; font-weight: 600; }
+
+    .download-btn {
+        display: block;
+        text-align: center;
+        margin-top: 18px;
+        text-decoration: none;
+        background: #10426b;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-size: 14px;
         font-weight: 600;
+    }
+
+    .download-btn:hover { background: #0b3252; }
+
+    .footer-note {
+        text-align: center;
+        font-size: 11px;
+        color: #9aa9b8;
+        margin-top: 25px;
     }
 </style>
 </head>
 <body>
 <div class="container">
-    <h1>🧠 Brain Tumor Detection System</h1>
+    <div class="header">
+        <h1>🧠 Brain Tumor Detection System</h1>
+    </div>
+    <p class="subtitle">AI-powered MRI classification using Custom CNN, VGG16 &amp; ResNet50 ensemble</p>
 
-    <form method="POST" enctype="multipart/form-data">
+    <form method="POST" enctype="multipart/form-data" onsubmit="showSpinner()">
         <input type="file" name="file" required>
-        <button type="submit">Predict</button>
+        <button type="submit">Analyze MRI Scan</button>
     </form>
+
+    <div class="spinner" id="loadingSpinner"></div>
 
     {% if uploaded_image %}
     <div class="image-preview">
@@ -202,7 +248,17 @@
         </div>
         {% endfor %}
     </div>
+
+    <a href="/download-report" class="download-btn">📄 Download PDF Report</a>
     {% endif %}
+
+    <div class="footer-note">Brain Tumor Detection Project &middot; Deep Learning Ensemble Model</div>
 </div>
+
+<script>
+    function showSpinner() {
+        document.getElementById('loadingSpinner').style.display = 'block';
+    }
+</script>
 </body>
 </html>
