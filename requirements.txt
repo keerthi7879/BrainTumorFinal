@@ -2,6 +2,5 @@ Flask
 gunicorn
 huggingface_hub
 numpy
-tensorflow==2.20.0
+tensorflow-cpu==2.20.0
 keras==3.13.2
-huggingface_hub
