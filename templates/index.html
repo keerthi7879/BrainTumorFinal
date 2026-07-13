@@ -1,22 +1,208 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Brain Tumor Detection</title>
+<meta charset="UTF-8">
+<title>Brain Tumor Detection System</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #f4f6f9;
+        margin: 0;
+        padding: 40px 20px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .container {
+        background: #ffffff;
+        max-width: 600px;
+        width: 100%;
+        padding: 30px 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+        text-align: center;
+        color: #2c3e50;
+        font-size: 26px;
+        margin-bottom: 30px;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    input[type="file"] {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        width: 100%;
+    }
+
+    button {
+        background: #2c7be5;
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 6px;
+        font-size: 15px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    button:hover {
+        background: #1a5fc0;
+    }
+
+    .image-preview {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .image-preview img {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+
+    .result-box {
+        text-align: center;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+    }
+
+    .tumor {
+        background: #fdecea;
+        border: 1px solid #f5c2c0;
+    }
+
+    .no-tumor {
+        background: #eafaf1;
+        border: 1px solid #b7ebc6;
+    }
+
+    .result-label {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .tumor .result-label { color: #c0392b; }
+    .no-tumor .result-label { color: #27ae60; }
+
+    .confidence-text {
+        font-size: 15px;
+        color: #555;
+        margin-bottom: 10px;
+    }
+
+    .confidence-bar-bg {
+        background: #e0e0e0;
+        border-radius: 20px;
+        height: 14px;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .confidence-bar-fill {
+        height: 100%;
+        border-radius: 20px;
+        transition: width 0.4s ease;
+    }
+
+    .tumor .confidence-bar-fill { background: #e74c3c; }
+    .no-tumor .confidence-bar-fill { background: #2ecc71; }
+
+    .model-results {
+        margin-top: 10px;
+    }
+
+    .model-results h3 {
+        font-size: 16px;
+        color: #2c3e50;
+        margin-bottom: 12px;
+    }
+
+    .model-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+
+    .model-name {
+        width: 120px;
+        color: #444;
+    }
+
+    .model-bar-bg {
+        flex: 1;
+        background: #e8e8e8;
+        border-radius: 10px;
+        height: 10px;
+        margin: 0 10px;
+        overflow: hidden;
+    }
+
+    .model-bar-fill {
+        height: 100%;
+        background: #2c7be5;
+        border-radius: 10px;
+    }
+
+    .model-percent {
+        width: 55px;
+        text-align: right;
+        color: #333;
+        font-weight: 600;
+    }
+</style>
 </head>
 <body>
-
-    <h1>Brain Tumor Detection System</h1>
+<div class="container">
+    <h1>🧠 Brain Tumor Detection System</h1>
 
     <form method="POST" enctype="multipart/form-data">
         <input type="file" name="file" required>
         <button type="submit">Predict</button>
     </form>
 
-    {% if result %}
-        <h2>{{ result }}</h2>
-        <h3>Confidence: {{ confidence }}%</h3>
+    {% if uploaded_image %}
+    <div class="image-preview">
+        <img src="{{ url_for('static', filename=uploaded_image) }}" alt="Uploaded MRI">
+    </div>
     {% endif %}
 
+    {% if result %}
+    <div class="result-box {{ 'tumor' if result == 'Tumor Detected' else 'no-tumor' }}">
+        <div class="result-label">{{ result }}</div>
+        <div class="confidence-text">Overall Confidence: {{ confidence }}%</div>
+        <div class="confidence-bar-bg">
+            <div class="confidence-bar-fill" style="width: {{ confidence }}%;"></div>
+        </div>
+    </div>
+
+    <div class="model-results">
+        <h3>Individual Model Predictions</h3>
+        {% for model_name, score in model_results.items() %}
+        <div class="model-row">
+            <div class="model-name">{{ model_name }}</div>
+            <div class="model-bar-bg">
+                <div class="model-bar-fill" style="width: {{ score }}%;"></div>
+            </div>
+            <div class="model-percent">{{ score }}%</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
 </body>
 </html>
