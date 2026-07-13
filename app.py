@@ -10,14 +10,12 @@ app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 HF_REPO_ID = "keerthi7879/brain-tumor-models"
 
-# Download .tflite models once (cached locally at startup)
 custom_cnn_path = hf_hub_download(repo_id=HF_REPO_ID, filename="custom_cnn_model.tflite")
 vgg16_path = hf_hub_download(repo_id=HF_REPO_ID, filename="vgg16_model.tflite")
 resnet50_path = hf_hub_download(repo_id=HF_REPO_ID, filename="resnet50_model.tflite")
 
 
 def run_tflite_prediction(model_path, img_array):
-    """Loads a TFLite model, runs one prediction, and frees memory."""
     interpreter = tf.lite.Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
 
@@ -32,7 +30,7 @@ def run_tflite_prediction(model_path, img_array):
     del interpreter
     gc.collect()
 
-    return output[0][0]  # single sigmoid value
+    return output[0][0]
 
 
 def predict_image(img_path):
@@ -41,34 +39,56 @@ def predict_image(img_path):
     img_array = np.expand_dims(img_array, axis=0)
     img_array = img_array / 255.0
 
-    # Same one-at-a-time approach, but with TFLite interpreters now
-    cnn = run_tflite_prediction(custom_cnn_path, img_array)
-    vgg = 1 - run_tflite_prediction(vgg16_path, img_array)
-    resnet = 1 - run_tflite_prediction(resnet50_path, img_array)
+    cnn_raw = run_tflite_prediction(custom_cnn_path, img_array)
+    vgg_raw = run_tflite_prediction(vgg16_path, img_array)
+    resnet_raw = run_tflite_prediction(resnet50_path, img_array)
+
+    cnn = cnn_raw
+    vgg = 1 - vgg_raw
+    resnet = 1 - resnet_raw
 
     final_score = (cnn + vgg + resnet) / 3
-    label = (
-        "Tumor Detected"
-        if final_score > 0.5
-        else "No Tumor"
-    )
+    label = "Tumor Detected" if final_score > 0.5 else "No Tumor"
     confidence = max(final_score, 1 - final_score)
-    return label, round(float(confidence * 100), 2)
+
+    # Individual model results (each model's own confidence %)
+    model_results = {
+        "Custom CNN": round(float(max(cnn, 1 - cnn) * 100), 2),
+        "VGG16": round(float(max(vgg, 1 - vgg) * 100), 2),
+        "ResNet50": round(float(max(resnet, 1 - resnet) * 100), 2),
+    }
+
+    return label, round(float(confidence * 100), 2), model_results
 
 
 @app.route("/", methods=["GET", "POST"])
 def home():
     result = None
     confidence = None
+    model_results = None
+    uploaded_image = None
+
     if request.method == "POST":
         file = request.files["file"]
-        uploads_dir = os.path.join(BASE_DIR, "uploads")
+        uploads_dir = os.path.join(BASE_DIR, "static", "uploads")
         os.makedirs(uploads_dir, exist_ok=True)
         save_path = os.path.join(uploads_dir, file.filename)
         file.save(save_path)
-        result, confidence = predict_image(save_path)
-    return render_template("index.html", result=result, confidence=confidence)
+
+        result, confidence, model_results = predict_image(save_path)
+        uploaded_image = f"uploads/{file.filename}"
+
+    return render_template(
+        "index.html",
+        result=result,
+        confidence=confidence,
+        model_results=model_results,
+        uploaded_image=uploaded_image,
+    )
 
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
+
+
