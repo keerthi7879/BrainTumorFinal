@@ -3,37 +3,33 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing import image
 import numpy as np
 import os
-import gdown
+from huggingface_hub import hf_hub_download
+
 app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Create models folder automatically
-models_dir = os.path.join(BASE_DIR, "models")
-os.makedirs(models_dir, exist_ok=True)
-# Google Drive model IDs (.keras format)
-model_files = {
-    os.path.join(models_dir, "custom_cnn_model.keras"):
-    "14SQP67-F0tCusj9-yfF0tFdyK57_41HG",
-    os.path.join(models_dir, "resnet50_model.keras"):
-    "1w6SDlrsc-vLbJMKWMuAV_oCEi0tASh2u",
-    os.path.join(models_dir, "vgg16_model.keras"):
-    "16PAGuBHbADl_TPi58dw6O2Jl_tx2VC0t",
-}
-# Download models if missing
-for path, file_id in model_files.items():
-    if not os.path.exists(path):
-        print(f"Downloading {path}...")
-        url = f"https://drive.google.com/uc?id={file_id}"
-        gdown.download(url, path, quiet=False)
+
+# Hugging Face repo details
+HF_REPO_ID = "keerthi7879/brain-tumor-models"
+
+# Download models from Hugging Face Hub
+custom_cnn_path = hf_hub_download(
+    repo_id=HF_REPO_ID,
+    filename="custom_cnn_model.keras"
+)
+vgg16_path = hf_hub_download(
+    repo_id=HF_REPO_ID,
+    filename="vgg16_model.keras"
+)
+resnet50_path = hf_hub_download(
+    repo_id=HF_REPO_ID,
+    filename="resnet50_model.keras"
+)
+
 # Load models
-model_cnn = tf.keras.models.load_model(
-    os.path.join(models_dir, "custom_cnn_model.keras")
-)
-model_vgg = tf.keras.models.load_model(
-    os.path.join(models_dir, "vgg16_model.keras")
-)
-model_resnet = tf.keras.models.load_model(
-    os.path.join(models_dir, "resnet50_model.keras")
-)
+model_cnn = tf.keras.models.load_model(custom_cnn_path)
+model_vgg = tf.keras.models.load_model(vgg16_path)
+model_resnet = tf.keras.models.load_model(resnet50_path)
+
 def predict_image(img_path):
     img = image.load_img(img_path, target_size=(224,224))
     img_array = image.img_to_array(img)
@@ -59,6 +55,7 @@ def predict_image(img_path):
         1-final_score
     )
     return label, round(float(confidence*100),2)
+
 @app.route("/", methods=["GET","POST"])
 def home():
     result = None
@@ -86,6 +83,7 @@ def home():
         result=result,
         confidence=confidence
     )
+
 if __name__=="__main__":
     app.run(
         host="0.0.0.0",
